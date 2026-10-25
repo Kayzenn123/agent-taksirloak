@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#241210">
+<meta name="description" content="TAKSIRLOAK — taksir harga wajar barang bekas sebelum bayar. Pilih barang, atur kondisi, sobek karcisnya, keluar harga tawar.">
+<title>TAKSIRLOAK — Taksir Harga Barang Loak Sebelum Bayar</title>
+<meta property="og:title" content="TAKSIRLOAK — Taksir Harga Barang Loak">
+<meta property="og:description" content="Jangan asal bayar, Bang — taksir dulu. Kisaran wajar + harga tawar + checklist cek barang bekas.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preload" href="fonts/rum-raisin-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/noto-kufi-arabic-variable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<a class="skip" href="#lapak">Lompat ke lapak</a>
+<div class="cursor" id="cursorFollower" aria-hidden="true"></div>
+
+<svg class="svg-defs" aria-hidden="true" focusable="false" width="0" height="0">
+  <defs>
+    <filter id="wobble" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="2.2"/>
+    </filter>
+    <filter id="wobble-strong" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="3" seed="11" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="3.4"/>
+    </filter>
+    <path id="curvePath" d="M30,118 Q400,-10 770,118" fill="none"/>
+    <symbol id="ic-karcis" viewBox="0 0 64 64">
+      <g fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#wobble)">
+        <path d="M8 20 h48 v10 a6 6 0 0 0 0 12 v10 H8 v-10 a6 6 0 0 0 0-12 z"/>
+        <path d="M40 20 v32" stroke-dasharray="3 4"/>
+        <circle cx="16" cy="28" r="2"/><circle cx="16" cy="44" r="2"/>
+        <path d="M46 28 h6 M46 36 h6 M46 44 h6"/>
+      </g>
+    </symbol>
+    <symbol id="ic-cari" viewBox="0 0 64 64">
+      <g fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#wobble-strong)">
+        <circle cx="28" cy="28" r="16"/>
+        <path d="M40 40 L54 54"/>
+        <path d="M20 28 h16 M28 20 v16"/>
+      </g>
+    </symbol>
+  </defs>
+</svg>
+
+<header class="topbar">
+  <p class="brand"><span class="brand-mark" aria-hidden="true">
+    <svg viewBox="0 0 64 64" class="ic"><use href="#ic-karcis"/></svg>
+  </span>TAKSIRLOAK <span class="brand-sub">Hari 16 · 30 Days of Code</span></p>
+  <div class="top-actions">
+    <button type="button" class="btn btn-kecil" id="motionToggle" aria-pressed="true">Gerak: nyala</button>
+    <a class="btn btn-kecil" href="#riwayat">Riwayat</a>
+  </div>
+</header>
+
+<main id="main">
+  <!-- STAGE A: zoom in karcis lalu pan kanan ke kalkulator -->
+  <section class="stage" id="atas" aria-label="Karcis taksir">
+    <div class="stage-sticky" id="stageSticky">
+      <div class="track" id="track">
+        <article class="panel panel-karcis" aria-label="Karcis kosong">
+          <div class="ticket-giant" id="heroTicket">
+            <svg class="curve-title" viewBox="0 0 800 140" aria-hidden="true" focusable="false">
+              <text class="curve-text"><textPath href="#curvePath" startOffset="50%" text-anchor="middle">TAKSIR DULU • BAYAR KEMUDIAN</textPath></text>
+            </svg>
+            <p class="karcis-label">KARCIS TAKSIR • TL-2026-····</p>
+            <h1 class="judul-raksasa">TAKSIRLOAK</h1>
+            <p class="sub-judul">ISI KARCISNYA, BANG</p>
+            <p class="karcis-teks">Pilih barang di lapak, atur kondisi, sobek karcisnya — keluar harga wajar, harga tawar awal, sama checklist cek barang. Jangan asal bayar.</p>
+            <button type="button" class="btn btn-besar magnetic" id="heroTaksirBtn" data-cursor="ticket">TAKSIR</button>
+            <p class="hero-error" id="heroError" aria-live="polite"></p>
+            <p class="karcis-meta">18 barang • Harga CONTOH • Listing Okt 2026</p>
+          </div>
+        </article>
+        <article class="panel panel-kalk" aria-label="Ringkasan kalkulator">
+          <div class="kalk-mini" id="kalkMini">
+            <p class="karcis-label">KALKULATOR • PAN KANAN</p>
+            <p class="mini-label">BARANG DIPILIH</p>
+            <p class="mini-nama" id="sumNama">Belum ada barang dipilih</p>
+            <p class="mini-label">KISARAN WAJAR (CONTOH)</p>
+            <p class="mini-harga" id="sumRange">—</p>
+            <p class="mini-label">TAWAR AWAL / MENTOK</p>
+            <p class="mini-harga" id="sumTawar">—</p>
+            <a class="btn btn-besar" href="#kalkulator">BUKA KALKULATOR</a>
+            <p class="mini-note">Harga berubah live saat kondisi digeser. Scroll ke bawah buat lapaknya.</p>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- MARQUEE B: 3 band beda kecepatan bertumpuk -->
+  <section class="marquee-wrap" id="marqueeWrap" aria-label="Jalur loak">
+    <div class="marquee-head">
+      <p class="karcis-label">JALUR LOAK • BUS JALAN TERUS</p>
+      <button type="button" class="btn btn-kecil" id="marqueeToggle" aria-pressed="false">Jeda marquee</button>
+    </div>
+    <div class="mq mq-1" aria-hidden="false"><div class="mq-track" id="mqBand1"></div></div>
+    <div class="mq mq-2"><div class="mq-track" id="mqBand2"></div></div>
+    <div class="mq mq-3"><div class="mq-track" id="mqBand3"></div></div>
+    <p class="mq-statis" id="mqStatis">Isi marquee di atas juga ada di lapak dan kalkulator bawah — tidak ada info yang cuma lewat marquee.</p>
+  </section>
+
+  <!-- LAPAK: bento 18 barang -->
+  <section class="lapak" id="lapak" aria-label="Lapak barang bekas">
+    <h2 class="judul-seksi">LAPAK — PILIH BARANGNYA</h2>
+    <p class="seksi-teks">Satu barang, satu karcis. Klik barangnya, karcis kalkulator kebuka. Semua harga berlabel CONTOH — harga listing Okt 2026, bukan harga transaksi.</p>
+    <div class="bento" id="lapakGrid"></div>
+  </section>
+
+  <!-- KALKULATOR -->
+  <section class="kalkulator" id="kalkulator" aria-label="Kalkulator taksir">
+    <h2 class="judul-seksi">KALKULATOR TAKSIR</h2>
+    <div class="kalk-grid">
+      <div class="kontrol" id="kalkPanel">
+        <p class="karcis-label">BARANG TERPILIH</p>
+        <p class="kontrol-nama" id="selNama">Belum pilih barang</p>
+        <p class="kontrol-kat" id="selKat">Pilih dulu di lapak atas, Bang.</p>
+        <button type="button" class="btn btn-kecil" id="gantiBtn">Ganti barang</button>
+
+        <fieldset class="grup">
+          <legend>Kondisi barang</legend>
+          <label class="opt"><input type="radio" name="kondisi" value="mulus" checked><span class="opt-isi">Mulus <i>×1,0</i></span></label>
+          <label class="opt"><input type="radio" name="kondisi" value="lecet"><span class="opt-isi">Lecet <i>×0,8</i></span></label>
+          <label class="opt"><input type="radio" name="kondisi" value="rusak"><span class="opt-isi">Rusak ringan <i>×0,55</i></span></label>
+        </fieldset>
+
+        <fieldset class="grup">
+          <legend>Kelengkapan</legend>
+          <label class="opt"><input type="radio" name="lengkap" value="fullset" checked><span class="opt-isi">Fullset <i>×1,0</i></span></label>
+          <label class="opt"><input type="radio" name="lengkap" value="batangan"><span class="opt-isi">Batangan <i>×0,85</i></span></label>
+        </fieldset>
+
+        <div class="grup" id="varianWrap" hidden>
+          <label class="lbl" for="varian">Ukuran</label>
+          <select id="varian" name="varian"></select>
+        </div>
+
+        <div class="grup">
+          <label class="lbl" for="tahun">Tahun beli</label>
+          <select id="tahun" name="tahun"></select>
+          <p class="grup-note">Tiap tahun lebih tua, kisaran turun 2% (maks 30%) — faktor umur, di luar pengali kondisi dan kelengkapan.</p>
+        </div>
+      </div>
+
+      <div class="hasil">
+        <div class="ticket" id="ticketHasil">
+          <div class="ticket-head">
+            <p class="karcis-label">KARCIS TAKSIR</p>
+            <p class="nomor-karcis" id="nomorKarcis">TL-2026-····</p>
+          </div>
+          <svg class="tear" viewBox="0 0 600 24" aria-hidden="true" focusable="false"><path id="tearPath" d="" fill="none"/><path id="tearDraw" d="" fill="none"/></svg>
+          <div class="hasil-isi" id="hasilLive" aria-live="polite">
+            <div class="empty" id="emptyHasil">
+              <span class="empty-icon" aria-hidden="true"><svg viewBox="0 0 64 64" class="ic"><use href="#ic-cari"/></svg></span>
+              <p class="empty-teks">Karcis masih kosong, Bang. Pilih barang di lapak dulu, baru taksir.</p>
+            </div>
+            <div class="angka" id="angkaHasil" hidden>
+              <p class="angka-label">KISARAN WAJAR <span class="tag-contoh">CONTOH</span></p>
+              <p class="angka-besar"><span id="hargaLow">—</span> – <span id="hargaHigh">—</span></p>
+              <p class="angka-label">TAWAR AWAL</p>
+              <p class="angka-besar angka-tawar" id="hargaTawar">—</p>
+              <p class="angka-label">MENTOK (JANGAN LEWAT SINI)</p>
+              <p class="angka-besar angka-mentok" id="hargaMentok">—</p>
+              <p class="angka-catatan" id="catatanHarga">Harga listing Okt 2026, bukan harga transaksi.</p>
+              <p class="angka-catatan" id="noteKhusus" hidden></p>
+              <p class="angka-label">FAKTOR UTAMA HARGA</p>
+              <p class="faktor" id="faktorText">—</p>
+              <p class="angka-label">CHECKLIST SEBELUM BAYAR</p>
+              <ul class="cek" id="cekList"></ul>
+            </div>
+          </div>
+          <div class="barcode" aria-hidden="true"></div>
+          <p class="ticket-foot">TAKSIRLOAK • Jangan asal bayar, Bang.</p>
+          <div class="stempel" id="stempel" aria-hidden="true">SAH</div>
+        </div>
+
+        <div class="aksi">
+          <button type="button" class="btn btn-besar magnetic" id="sobekBtn" data-cursor="ticket">SOBEK KARCIS</button>
+          <button type="button" class="btn" id="salinWaBtn">SALIN PESAN TAWAR WA</button>
+          <button type="button" class="btn" id="salinTautanBtn">SALIN TAUTAN</button>
+        </div>
+        <p class="aksi-error" id="kalkError" role="alert"></p>
+        <p class="aksi-status" id="waStatus" aria-live="polite"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- EASTER EGG: Mode Tawar-Menawar -->
+  <section class="tawar" id="tawarPanel" hidden aria-label="Mode tawar-menawar">
+    <h2 class="judul-seksi">MODE TAWAR-MENAWAR</h2>
+    <p class="seksi-teks">Ketik “tawar” di mana saja buat buka panel ini. Tiga jurus Bang Taksir, jangan dipakai buat nipu penjual — dipakai biar harga adil.</p>
+    <div class="jurus-grid">
+      <article class="jurus">
+        <p class="jurus-no">JURUS 1</p>
+        <p class="jurus-judul">Buka rendah, senyum dulu</p>
+        <p class="jurus-teks">Tawar awal di karcis itu = 90% dari batas bawah. Buka dari situ, jangan dari separuh harga — penjual langsung males.</p>
+      </article>
+      <article class="jurus">
+        <p class="jurus-no">JURUS 2</p>
+        <p class="jurus-judul">Tunjuk cacatnya, jangan nyinyir</p>
+        <p class="jurus-teks">Sebut lecetnya satu-satu, tenang. “Bang, ini lecet di sini, layarnya ada shadow dikit.” Fakta lebih ampuh dari drama.</p>
+      </article>
+      <article class="jurus">
+        <p class="jurus-no">JURUS 3</p>
+        <p class="jurus-judul">Kasih mentok, jalan pelan</p>
+        <p class="jurus-teks">Sebut harga mentokmu sekali, terus jalan pelan. Kalau harga lo adil, penjual yang manggil balik. Kalau nggak, berarti memang bukan rezeki.</p>
+      </article>
+    </div>
+    <p class="tawar-mentok">Harga mentok barang yang lagi lo taksir: <strong id="tawarMentok">—</strong></p>
+    <button type="button" class="btn btn-kecil" id="tawarClose">Tutup panel</button>
+  </section>
+
+  <!-- RIWAYAT -->
+  <section class="riwayat" id="riwayat" aria-label="Riwayat taksir">
+    <h2 class="judul-seksi">RIWAYAT TAKSIR</h2>
+    <p class="seksi-teks">Disimpan di browser lo sendiri (localStorage), bukan di server mana-mana. Buka lagi kapan saja, atau ekspor buat arsip.</p>
+    <ul class="riwayat-list" id="riwayatList"></ul>
+    <p class="riwayat-kosong" id="riwayatEmpty">Belum ada taksiran. Sobek satu karcis dulu, Bang.</p>
+    <div class="riwayat-aksi">
+      <button type="button" class="btn" id="eksporBtn">EKSPOR JSON</button>
+      <button type="button" class="btn" id="hapusRiwayatBtn">HAPUS RIWAYAT</button>
+    </div>
+    <p class="aksi-status" id="riwayatStatus" aria-live="polite"></p>
+  </section>
+</main>
+
+<footer class="kaki">
+  <p class="kaki-judul">TAKSIRLOAK — “Jangan asal bayar, Bang — taksir dulu.”</p>
+  <p class="kaki-teks">Semua harga berlabel CONTOH: harga listing/penawaran Oktober 2026 dari Tokopedia, Shopee, dan JBA (lelang). Harga jual riil biasanya 5–20% di bawah listing setelah nego. Motor Beat: angka JBA = harga lelang, alias lantai — eceran showroom/OLX bisa di atas itu.</p>
+  <p class="kaki-teks">Sumber: Tokopedia “bekas/second” Okt 2026 (HP, laptop, kamera, jam, sneakers, tas, konsol, TWS, GoPro); Shopee (GoPro Hero 10); JBA jba.co.id (Honda Beat 2019–2022); iPrice/Shopee (TV LED).</p>
+  <p class="kaki-teks">Font: Rum Raisin, Noto Kufi Arabic (variable), Akronim — Fontsource, lisensi OFL. Ikon: digambar sendiri gaya hand-drawn (feTurbulence), inspirasi Streamline. GSAP 3.12.5 di-host lokal. Dibuat Hari 16 — 30 Days of Code.</p>
+  <p class="kaki-teks"><a class="flink" href="#atas">Balik ke atas</a> · <a class="flink" href="#lapak">Lapak</a> · <a class="flink" href="#kalkulator">Kalkulator</a></p>
+</footer>
+
+<script src="vendor/gsap.min.js"></script>
+<script src="vendor/ScrollTrigger.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
